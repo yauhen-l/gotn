@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -8,23 +9,46 @@ import (
 	"go/token"
 	"io/ioutil"
 	"log"
-	"runtime"
+	"strconv"
+	"strings"
 )
 
-var FileSet = token.NewFileSet()
-
 func main() {
-	filename := "/home/yauhen/ws/golang/src/github.com/yauhenl/gotn/gotn_test.go"
-	src, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Fatalf("cannot read file %q: %v", filename, err)
+	file := flag.String("f", "", "test file")
+	pos := flag.Int("p", 0, "position in file")
+
+	flag.Parse()
+
+	if len(*file) == 0 {
+		log.Fatalf("-f flag is required")
 	}
-	f, err := parser.ParseFile(FileSet, filename, src, parser.Trace)
+
+	if !strings.HasSuffix(*file, "_test.go") {
+		log.Fatalf("not a _test.go file")
+	}
+
+	src, err := ioutil.ReadFile(*file)
+	if err != nil {
+		log.Fatalf("cannot read file %q: %v", file, err)
+	}
+
+	res := getTestNameAtPos(*file, src, *pos)
+	if res == "" {
+		log.Fatalf("no test function found")
+	}
+	fmt.Print(res)
+}
+
+func getTestNameAtPos(filename string, src []byte, pos int) string {
+	fileSet := token.NewFileSet()
+
+	f, err := parser.ParseFile(fileSet, filename, src, 0)
 	if err != nil {
 		log.Fatalf("cannot parse file %q: %v", filename, err)
 	}
-	o := findIdentifier(f, 65)
-	log.Print(o)
+	tc := findTestCase(f, pos)
+
+	return strings.Join(tc, "/")
 }
 
 func defaultImportPathToName(path, srcDir string) (string, error) {
@@ -32,97 +56,97 @@ func defaultImportPathToName(path, srcDir string) (string, error) {
 	return pkg.Name, err
 }
 
-func findIdentifier(f *ast.File, searchpos int) ast.Node {
-	ec := make(chan ast.Node)
+func findTestCase(f *ast.File, searchpos int) []string {
+	var res []string
 
-	found := func(startPos, endPos token.Pos) bool {
-		start := FileSet.Position(startPos).Offset
-		end := start + int(endPos-startPos)
-		return start <= searchpos && searchpos <= end
-	}
-
-	go func() {
-		var curTestFunc string
-
-		visit := func(n ast.Node) bool {
-			var startPos token.Pos
-
-			switch n := n.(type) {
-			case *ast.CallExpr:
-				caseName, ok := isRunTestCase(n)
-				if !ok {
-					return false
-				}
-			case *ast.FuncLit:
-				if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
-					return false
-				}
-
-				if !isTestFunc(n.Type) {
-					return false
-				}
-
-				return true
-			case *ast.FuncDecl:
-				if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
-					return false
-				}
-
-				if !isTestFunc(n.Type) {
-					return false
-				}
-				log.Printf("func %s at [%d, %d]", n.Name.String(), n.Pos(), n.End())
-				curTestFunc = n.Name.String()
-				log.Printf(curTestFunc)
-				return true
-			default:
-				return true
+	visit := func(n ast.Node) bool {
+		switch n := n.(type) {
+		case *ast.CallExpr:
+			if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
+				return false
 			}
-			if found(startPos, n.End()) {
-				ec <- n
-				runtime.Goexit()
+
+			caseName, ok := isRunTestCase(n)
+			if !ok {
+				return false
 			}
+
+			if len(caseName) == 0 {
+				//failed to determine test case name - stop going deeper
+				return false
+			}
+			res = append(res, rewrite(caseName))
+			return true
+		case *ast.FuncDecl:
+			if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
+				return false
+			}
+
+			if !isTestFunc(n.Type) {
+				return false
+			}
+			//log.Printf("func %s at [%d, %d]", n.Name.String(), n.Pos(), n.End())
+			res = append(res, n.Name.String())
+
+			return true
+		default:
 			return true
 		}
-		ast.Walk(FVisitor(visit), f)
-		ec <- nil
-	}()
-	ev := <-ec
-	if ev == nil {
-		log.Fatal("no identifier found")
 	}
-	return ev
+
+	ast.Walk(FVisitor(visit), f)
+
+	return res
 }
 
-func isRunTestCase(c *ast.CallExpr) (string, bool) {
+type FVisitor func(n ast.Node) bool
+
+func (f FVisitor) Visit(n ast.Node) ast.Visitor {
+	if f(n) {
+		return f
+	}
+	return nil
+}
+
+func isRunTestCase(c *ast.CallExpr) (name string, found bool) {
 	if len(c.Args) != 2 {
-		return "", false
+		return
 	}
 
 	sel, ok := c.Fun.(*ast.SelectorExpr)
 	if !ok {
-		return "", false
+		return
 	}
 
 	if sel.Sel.Name != "Run" {
-		return "", false
+		return
 	}
 
 	f, ok := c.Args[1].(*ast.FuncLit)
 	if !ok {
-		return "", false
+		return
 	}
 
 	if !isTestFunc(f.Type) {
-		return "", false
+		return
 	}
 
-	name, ok := c.Args[0].(*ast.BasicLit)
+	found = true
+
+	bl, ok := c.Args[0].(*ast.BasicLit)
 	if !ok {
-		return "", true
+		return
 	}
 
-	return name.Value, true
+	if bl.Kind != token.STRING {
+		return
+	}
+
+	name = bl.Value
+	//strip quotes
+	name = string(name[1 : len(name)-1])
+
+	return
 }
 
 func isTestFunc(ft *ast.FuncType) bool {
@@ -154,11 +178,38 @@ func isTestingTExpr(expr string) ast.Expr {
 	return nil
 }
 
-type FVisitor func(n ast.Node) bool
-
-func (f FVisitor) Visit(n ast.Node) ast.Visitor {
-	if f(n) {
-		return f
+// rewrite rewrites a subname to having only printable characters and no white space.
+func rewrite(s string) string {
+	b := []byte{}
+	for _, r := range s {
+		switch {
+		case isSpace(r):
+			b = append(b, '_')
+		case !strconv.IsPrint(r):
+			s := strconv.QuoteRune(r)
+			b = append(b, s[1:len(s)-1]...)
+		default:
+			b = append(b, string(r)...)
+		}
 	}
-	return nil
+	return string(b)
+}
+
+func isSpace(r rune) bool {
+	if r < 0x2000 {
+		switch r {
+		// Note: not the same as Unicode Z class.
+		case '\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0, 0x1680:
+			return true
+		}
+	} else {
+		if r <= 0x200a {
+			return true
+		}
+		switch r {
+		case 0x2028, 0x2029, 0x202f, 0x205f, 0x3000:
+			return true
+		}
+	}
+	return false
 }
