@@ -1,4 +1,4 @@
-;;; gotn.el --- Utility tool for Go programming language
+;;; gotn.el --- Utility tool for Go programming language to run test at point
 
 ;; Author: Yauhen Lazurkin
 ;; Keywords: languages go test
