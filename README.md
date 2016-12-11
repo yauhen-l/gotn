@@ -1,9 +1,9 @@
 # gotn
-Get test name at position in _test.go file
+Get test name at position in `*_test.go` file
 
 Name `gotn` stands for `go test name`
 
-This tool was written to execute particular go test from editor (e.g. emacs ofr vim)
+This tool was written to execute particular go test from editor (e.g. Emacs)
 
 ##Requirements
 - golang 1.7 (not tested on other versions)
@@ -22,7 +22,7 @@ ok      github.com/yauhenl/gotn 0.002s
 
 Run `Test/second_level` from `gotn_test.go`
 ```
-go test -v -run ^`gotn -f gotn_test.go -p 550`$
+>go test -v -run ^`gotn -f gotn_test.go -p 550`$
 === RUN   Test
 === RUN   Test/second_level
 --- PASS: Test (0.00s)
@@ -31,5 +31,14 @@ PASS
 ok      github.com/yauhenl/gotn 0.002s
 ```
 
-##TODO
-- Integrate with emacs
+##Emacs
+Add `gotn.el` to `load-path`
+```
+(require 'gotn)
+(add-hook 'go-mode-hook (lambda ()
+													(local-set-key (kbd "C-c C-t") 'gotn-run-test)))
+```
+
+##Restrictions
+- Supports only standard Go testing framework: https://golang.org/pkg/testing/
+- Does not support `"testing"` package import aliases
