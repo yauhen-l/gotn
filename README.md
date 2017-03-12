@@ -40,7 +40,17 @@ Add `gotn.el` to `load-path`
 ```
 (require 'gotn)
 (add-hook 'go-mode-hook (lambda ()
-													(local-set-key (kbd "C-c C-t") 'gotn-run-test)))
+                        (local-set-key (kbd "C-c t") 'gotn-run-test))
+                        (local-set-key (kbd "C-c C-t") 'gotn-run-test-package)))
+```
+
+For customizations see group `gotn`.
+
+```
+(customer-set-variables
+  '(go-test-case-command "gb test -v -test.run")
+  '(go-test-package-command "gb test -v")
+  '(go-test-package-test-fallback t))
 ```
 
 ##Restrictions
