@@ -1,4 +1,4 @@
-# gotn
+# gotn [![Build Status](https://travis-ci.org/yauhen-l/gotn.svg?branch=master)](https://travis-ci.org/yauhen-l/gotn)
 Get test name at position in `*_test.go` file
 
 Name `gotn` stands for `go test name`
