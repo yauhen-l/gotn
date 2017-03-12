@@ -14,38 +14,24 @@ func x(a int) {}
 `
 
 func Test(t *testing.T) {
-	t.Run("top level", func(t *testing.T) {
-		expected := "Test"
-
-		for _, pos := range []int{31, 57} {
-			assertAtPos(t, expected, pos)
-		}
-
-		for _, pos := range []int{152, 153} {
-			assertAtPos(t, expected, pos)
-		}
-	})
-
-	t.Run("second level", func(t *testing.T) {
-		expected := "Test/some_subset"
-
-		for _, pos := range []int{58, 101} {
-			assertAtPos(t, expected, pos)
-		}
-
-		for _, pos := range []int{148, 151} {
-			assertAtPos(t, expected, pos)
-		}
-	})
-
-	t.Run("third level", func(t *testing.T) {
-		expected := "Test/some_subset/and_deeper"
-
-		for _, pos := range []int{102, 147} {
-			assertAtPos(t, expected, pos)
-		}
-	})
-
+	cases := []struct {
+		expected string
+		pos      int
+	}{
+		{"Test", 31},
+		{"Test", 57},
+		{"Test", 152},
+		{"Test", 153},
+		{"Test/some_subset", 58},
+		{"Test/some_subset", 101},
+		{"Test/some_subset", 148},
+		{"Test/some_subset", 151},
+		{"Test/some_subset/and_deeper", 102},
+		{"Test/some_subset/and_deeper", 147},
+	}
+	for _, c := range cases {
+		assertAtPos(t, c.expected, c.pos)
+	}
 }
 
 func assertAtPos(t *testing.T, expected string, pos int) {
