@@ -8,6 +8,10 @@ This tool was written to execute particular go test from editor (e.g. Emacs)
 ##Requirements
 - golang 1.7 (not tested on other versions)
 
+##Installation
+`go get github.com/yauhen-l/gotn`
+Then make sure `gotn` executable in your `PATH`
+
 ##Usage
 Run `Test/top_level` from `gotn_test.go`
 ```
