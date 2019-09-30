@@ -1,8 +1,9 @@
-;;; gotn.el --- Utility tool for Go programming language to run test at point
+;;; gotn.el --- Utility tool for Go to run test at point
 
 ;; Author: Yauhen Lazurkin
-;; Keywords: languages go test
 ;; URL: https://github.com/yauhenl/gotn
+;; Keywords: tools
+;; Version: 1.0
 
 ;;; Commentary:
 
@@ -25,17 +26,17 @@
 
 (add-to-list 'compilation-error-regexp-alist '("\\([a-zA-Z0-9_]+\\.go\\):\\([0-9]+\\)" 1 2))
 
-(defcustom go-test-case-command "go test -v -run"
+(defcustom gotn-go-test-case-command "go test -v -run"
   "The command to run test case."
   :type 'string
   :group 'gotn)
 
-(defcustom go-test-package-command "go test -v ."
+(defcustom gotn-go-test-package-command "go test -v ."
   "The command to run tests of current pacakge."
   :type 'string
   :group 'gotn)
 
-(defcustom go-test-package-test-fallback t
+(defcustom gotn-go-test-package-test-fallback t
   "Whether no test case under position run all package tests."
   :type 'boolean
   :group 'gotn)
@@ -54,7 +55,7 @@
 (defun gotn-run-test-package ()
   "Run go test of current package."
   (interactive)
-  (gotn--run-test-as-compilation go-test-package-command))
+  (gotn--run-test-as-compilation gotn-go-test-package-command))
 
 ;;;###autoload
 (defun gotn-run-test (point)
@@ -63,9 +64,9 @@
   (condition-case nil
       (let ((gotn-out (gotn--call point)))
         (if (= (car gotn-out) 0)
-            (gotn--run-test-as-compilation (concat go-test-case-command " ^" (car (cdr gotn-out)) "$"))
-          (if go-test-package-test-fallback
-              (gotn--run-test-as-compilation go-test-package-command)
+            (gotn--run-test-as-compilation (concat gotn-go-test-case-command " ^" (car (cdr gotn-out)) "$"))
+          (if gotn-go-test-package-test-fallback
+              (gotn--run-test-as-compilation gotn-go-test-package-command)
             (message (format "Could not run gotn binary: %s" (cdr gotn-out))))))))
 
 (defun gotn--call (point)
@@ -91,7 +92,7 @@
   (use-local-map gotn-mode-map)
   (setq major-mode 'gotn-mode)
   (setq mode-name "gotn")
-  (setq-local truncate-lines t)
+  (setq truncate-lines t)
   (font-lock-add-keywords nil nil))
 
 (provide 'gotn)

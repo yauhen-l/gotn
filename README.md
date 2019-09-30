@@ -45,9 +45,9 @@ For customizations see group `gotn`.
 
 ```
 (customer-set-variables
-  '(go-test-case-command "gb test -v -test.run")
-  '(go-test-package-command "gb test -v")
-  '(go-test-package-test-fallback t))
+  '(gotn-go-test-case-command "gb test -v -test.run")
+  '(gotn-go-test-package-command "gb test -v")
+  '(gotn-go-test-package-test-fallback t))
 ```
 
 ##Restrictions
