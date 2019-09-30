@@ -46,7 +46,7 @@
   "*Go test*")
 
 (defun gotn--run-test-as-compilation (cmd)
-  "Run CMD in gotn-mode."
+  "Run CMD in ‘gotn-mode’."
   (compilation-start cmd
                      'gotn-mode
                      'gotn--compilation-name))
