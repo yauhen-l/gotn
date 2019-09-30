@@ -2,9 +2,23 @@
 
 ;; Author: Yauhen Lazurkin
 ;; Keywords: languages go test
-;; URL: https://github.com/yauhenl/gotn.el
+;; URL: https://github.com/yauhenl/gotn
 
 ;;; Commentary:
+
+;; Quick start:
+;; Install `gotn` tool with `go get github.com/yauhenl/gotn`
+;; and make sure it is in the PATH
+;;
+;; Define a go-mode hook and bindings:
+;; (require 'gotn)
+;; (add-hook 'go-mode-hook
+;;   (lambda ()
+;;     (local-set-key (kbd "C-c t") 'gotn-run-test))
+;;     (local-set-key (kbd "C-c C-t") 'gotn-run-test-package)))
+;;
+;; For more details visit: https://github.com/yauhenl/gotn
+
 ;;; Code:
 
 (require 'compile)
@@ -36,12 +50,13 @@
                      'gotn-mode
                      'gotn--compilation-name))
 
-
+;;;###autoload
 (defun gotn-run-test-package ()
   "Run go test of current package."
   (interactive "d")
   (gotn--run-test-as-compilation go-test-package-command))
 
+;;;###autoload
 (defun gotn-run-test (point)
   "Run go test at POINT."
   (interactive "d")
