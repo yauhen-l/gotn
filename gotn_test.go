@@ -13,7 +13,7 @@ func Test(t *testing.T) {
 func x(a int) {}
 `
 
-func Test(t *testing.T) {
+func TestGetTestNameAtPos(t *testing.T) {
 	cases := []struct {
 		expected string
 		pos      int

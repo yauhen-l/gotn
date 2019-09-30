@@ -14,9 +14,25 @@ import (
 )
 
 func main() {
-	file := flag.String("f", "", "test file")
-	pos := flag.Int("p", 0, "position in file")
+	file := flag.String("f", "", "go test file")
+	pos := flag.Int("p", 0, "position in a file")
 
+	flag.Usage = func() {
+		fmt.Print(`'gotn' determines a go test case name by an offset (-p) in a test file (-f).
+
+Usage:
+`)
+		flag.PrintDefaults()
+		fmt.Print(`
+Examples.
+1. Get test case name at offsett 350 in a gotn_test.go file:
+gotn -f gotn_test.go -p 350
+
+2. Use in conjunction with 'go test':
+go test -v -run ^$(gotn -f gotn_test.go -p 350)$
+
+`)
+	}
 	flag.Parse()
 
 	if len(*file) == 0 {
@@ -29,7 +45,7 @@ func main() {
 
 	src, err := ioutil.ReadFile(*file)
 	if err != nil {
-		log.Fatalf("cannot read file %q: %v", file, err)
+		log.Fatalf("cannot read file %q: %v", *file, err)
 	}
 
 	res := getTestNameAtPos(*file, src, *pos)
