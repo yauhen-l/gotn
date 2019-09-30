@@ -13,9 +13,22 @@ import (
 	"strings"
 )
 
+const testingDefaultPath = "testing"
+
+var testingImportAlias = testingDefaultPath
+var debugEnabled bool
+
+func debugf(msg string, args ...interface{}) {
+	if debugEnabled {
+		log.Printf(msg, args...)
+	}
+}
+
 func main() {
 	file := flag.String("f", "", "go test file")
 	pos := flag.Int("p", 0, "position in a file")
+
+	flag.BoolVar(&debugEnabled, "d", false, "enable debug loggin")
 
 	flag.Usage = func() {
 		fmt.Print(`'gotn' determines a go test case name by an offset (-p) in a test file (-f).
@@ -77,10 +90,21 @@ func findTestCase(f *ast.File, searchpos int) []string {
 
 	visit := func(n ast.Node) bool {
 		switch n := n.(type) {
+		case *ast.ImportSpec:
+			debugf("Processing import: path=%+v, name=%+v", n.Path, n.Name)
+			path, _ := strconv.Unquote(n.Path.Value)
+
+			if path == testingDefaultPath && n.Name != nil {
+				testingImportAlias = n.Name.Name
+				debugf("Testing alias has chaned to: %s", testingImportAlias)
+			}
+			return false
 		case *ast.CallExpr:
 			if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
 				return false
 			}
+
+			debugf("Visiting func call %v at [%d, %d]", n.Fun, n.Pos(), n.End())
 
 			caseName, ok := isRunTestCase(n)
 			if !ok {
@@ -97,11 +121,11 @@ func findTestCase(f *ast.File, searchpos int) []string {
 			if searchpos < int(n.Pos()) || int(n.End()) < searchpos {
 				return false
 			}
+			debugf("Visiting func %s at [%d, %d]", n.Name.String(), n.Pos(), n.End())
 
 			if !isTestFunc(n.Type) {
 				return false
 			}
-			//log.Printf("func %s at [%d, %d]", n.Name.String(), n.Pos(), n.End())
 			res = append(res, n.Name.String())
 
 			return true
@@ -160,7 +184,7 @@ func isRunTestCase(c *ast.CallExpr) (name string, found bool) {
 
 	name = bl.Value
 	//strip quotes
-	name = string(name[1 : len(name)-1])
+	name, _ = strconv.Unquote(name)
 
 	return
 }
@@ -178,7 +202,12 @@ func isTestFunc(ft *ast.FuncType) bool {
 		return false
 	}
 
-	return fmt.Sprintf("%s.%s", sel.X, sel.Sel.Name) == "testing.T"
+	argType := fmt.Sprintf("%s.%s", sel.X, sel.Sel.Name)
+	testingT := testingImportAlias + ".T"
+
+	debugf("Comparing argType=%s with %s", argType, testingT)
+
+	return argType == testingT
 }
 
 func isTestingTExpr(expr string) ast.Expr {

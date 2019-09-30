@@ -52,4 +52,3 @@ For customizations see group `gotn`.
 
 ## Restrictions
 - Supports only standard Go testing framework: https://golang.org/pkg/testing/
-- Does not support `"testing"` package import aliases

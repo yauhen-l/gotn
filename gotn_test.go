@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	ts "testing"
+)
 
 const testFileSrc = `package main
 import "testing"
@@ -13,7 +15,7 @@ func Test(t *testing.T) {
 func x(a int) {}
 `
 
-func TestGetTestNameAtPos(t *testing.T) {
+func TestGetTestNameAtPos(t *ts.T) {
 	cases := []struct {
 		expected string
 		pos      int
@@ -34,7 +36,7 @@ func TestGetTestNameAtPos(t *testing.T) {
 	}
 }
 
-func assertAtPos(t *testing.T, expected string, pos int) {
+func assertAtPos(t *ts.T, expected string, pos int) {
 	actual := getTestNameAtPos("test_data", []byte(testFileSrc), pos)
 	if expected != actual {
 		t.Errorf("pos %d - expected test name: %q, but got %q. Near: %q", pos, expected, actual, testFileSrc[pos:])
