@@ -53,7 +53,7 @@
 ;;;###autoload
 (defun gotn-run-test-package ()
   "Run go test of current package."
-  (interactive "d")
+  (interactive)
   (gotn--run-test-as-compilation go-test-package-command))
 
 ;;;###autoload
