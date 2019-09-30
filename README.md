@@ -5,11 +5,11 @@ Name `gotn` stands for `go test name`
 
 This tool was written to execute particular go test from editor (e.g. Emacs)
 
-##Installation
+## Installation
 `go get github.com/yauhen-l/gotn`
-Then make sure `gotn` executable in your `PATH`
+Then make sure `gotn` executable is in your `PATH`
 
-##Usage
+## Usage
 Run `Test/top_level` from `gotn_test.go`
 ```
 >go test -v -run ^`gotn -f gotn_test.go -p 350`$
@@ -32,7 +32,7 @@ PASS
 ok      github.com/yauhenl/gotn 0.002s
 ```
 
-##Emacs
+## Emacs
 Add `gotn.el` to `load-path`
 ```
 (require 'gotn)
@@ -50,6 +50,6 @@ For customizations see group `gotn`.
   '(gotn-go-test-package-test-fallback t))
 ```
 
-##Restrictions
+## Restrictions
 - Supports only standard Go testing framework: https://golang.org/pkg/testing/
 - Does not support `"testing"` package import aliases
