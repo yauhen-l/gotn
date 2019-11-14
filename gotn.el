@@ -18,7 +18,7 @@
 ;;     (local-set-key (kbd "C-c t") 'gotn-run-test))
 ;;     (local-set-key (kbd "C-c C-t") 'gotn-run-test-package)))
 ;;
-;; For more details visit: https://github.com/yauhenl/gotn
+;; For more details visit: https://github.com/yauhen-l/gotn
 
 ;;; Code:
 
@@ -41,8 +41,8 @@
   :type 'boolean
   :group 'gotn)
 
-(defun gotn--compilation-name (mode-name)
-  "Name of the go test.  MODE-NAME is unused."
+(defun gotn--compilation-name (_mode-name)
+  "Name of the go test.  _MODE-NAME is unused."
   "*Go test*")
 
 (defun gotn--run-test-as-compilation (cmd)
@@ -90,8 +90,6 @@
 (define-derived-mode gotn-mode compilation-mode "gotn"
   "Major mode for the gotn compilation buffer."
   (use-local-map gotn-mode-map)
-  (setq major-mode 'gotn-mode)
-  (setq mode-name "gotn")
   (setq truncate-lines t)
   (font-lock-add-keywords nil nil))
 
